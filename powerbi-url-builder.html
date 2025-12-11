@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power BI Report Server URL Builder</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0px 40px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .logo {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        
+        .header-title {
+            font-size: 24px;
+            color: #4a5568;
+            font-weight: 400;
+        }
+        
+        .nav-bar {
+            background: #2c3e50;
+            padding: 0;
+            display: flex;
+        }
+        
+        .nav-item {
+            color: white;
+            padding: 16px 24px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .nav-item.active {
+            background: #7f8c8d;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .section-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+            font-weight: normal;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+        
+        textarea {
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            min-height: 80px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: #2c3e50;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #34495e;
+        }
+        
+        .btn-secondary {
+            background: #7f8c8d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #95a5a6;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #2ecc71;
+        }
+        
+        .btn-danger {
+            background: #c0392b;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e74c3c;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .parameter-item {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .parameter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .param-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .output-box {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            word-break: break-all;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .validation-msg {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 13px;
+            display: none;
+            border-left: 4px solid;
+        }
+        
+        .validation-msg.success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+            display: block;
+        }
+        
+        .validation-msg.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+            display: block;
+        }
+        
+        .copy-btn-wrapper {
+            text-align: right;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        
+        .tooltip {
+            background: #2c3e50;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            position: absolute;
+            top: -35px;
+            right: 0;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+        
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2c3e50;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img class="logo" src="GeoFreshLogo.png">
+        <h1 class="header-title">Power BI Report Server URL Builder</h1>
+    </div>
+    
+    <nav class="nav-bar">
+        <a href="#" class="nav-item active">URL Builder</a>
+    </nav>
+    
+    <div class="container">
+        <div class="info-box">
+            Build and encode URLs with proper Power BI Report Server parameter syntax. Parse existing URLs or create new ones with automatic validation.
+        </div>
+
+        <!-- Parse Existing URL -->
+        <div class="content-card">
+            <div class="section-title">Parse Existing URL</div>
+            <div class="section-subtitle">Paste an existing URL to parse and edit its parameters</div>
+            <label>Existing URL:</label>
+            <textarea id="existingUrl" placeholder="https://reportserver/reports/powerbi/SalesReport?filter=Store/Territory eq 'NC'"></textarea>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="parseUrl()">Parse URL</button>
+                <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+            </div>
+        </div>
+        
+        <!-- Base URL -->
+        <div class="content-card">
+            <div class="section-title">Base Report URL</div>
+            <div class="section-subtitle">Enter the report server URL without parameters</div>
+            <label>Report Server URL:</label>
+            <input type="text" id="baseUrl" placeholder="https://reportserver/reports/powerbi/SalesReport" oninput="generateUrl()">
+            <div id="baseUrlValidation" class="validation-msg"></div>
+        </div>
+        
+        <!-- Parameters -->
+        <div class="content-card">
+            <div class="section-title">Filter Parameters</div>
+            <div class="section-subtitle">Add filter parameters (Table/Field eq 'Value' format)</div>
+            <div id="parametersContainer"></div>
+            <button class="btn btn-primary" onclick="addParameter()">+ Add Parameter</button>
+        </div>
+        
+        <!-- Generated URL -->
+        <div class="content-card">
+            <div class="section-title">Generated URL</div>
+            <div class="section-subtitle">Your encoded URL ready to use</div>
+            <div class="copy-btn-wrapper">
+                <button class="btn btn-success" onclick="copyToClipboard()">
+                    Copy to Clipboard
+                    <span class="tooltip" id="copyTooltip">Copied!</span>
+                </button>
+            </div>
+            <div class="output-box">
+                <div id="generatedUrl">Enter base URL and parameters to generate</div>
+            </div>
+            <div id="urlValidation" class="validation-msg"></div>
+        </div>
+    </div>
+
+    <script>
+        let parameterCount = 0;
+        
+        // Initialize with one parameter
+        window.onload = function() {
+            addParameter();
+        };
+        
+        function addParameter() {
+            const container = document.getElementById('parametersContainer');
+            const id = ++parameterCount;
+            
+            const div = document.createElement('div');
+            div.className = 'parameter-item';
+            div.id = `param-${id}`;
+            div.innerHTML = `
+                <div class="parameter-row">
+                    <div class="param-input-group">
+                        <label>Table Name</label>
+                        <input type="text" id="table-${id}" placeholder="Store" oninput="generateUrl()">
+                    </div>
+                    <div class="param-input-group">
+                        <label>Field Name</label>
+                        <input type="text" id="field-${id}" placeholder="Territory" oninput="generateUrl()">
+                    </div>
+                    <div class="param-input-group">
+                        <label>Value</label>
+                        <input type="text" id="value-${id}" placeholder="NC" oninput="generateUrl()">
+                    </div>
+                    <button class="btn btn-danger" onclick="removeParameter(${id})" style="margin-bottom: 0;">Remove</button>
+                </div>
+            `;
+            
+            container.appendChild(div);
+        }
+        
+        function removeParameter(id) {
+            const elem = document.getElementById(`param-${id}`);
+            if (elem) {
+                elem.remove();
+                generateUrl();
+            }
+        }
+        
+        function clearAll() {
+            document.getElementById('existingUrl').value = '';
+            document.getElementById('baseUrl').value = '';
+            document.getElementById('parametersContainer').innerHTML = '';
+            parameterCount = 0;
+            addParameter();
+            generateUrl();
+        }
+        
+        function parseUrl() {
+            const urlInput = document.getElementById('existingUrl').value.trim();
+            if (!urlInput) {
+                showValidation('baseUrlValidation', 'error', 'Please enter a URL to parse');
+                return;
+            }
+            
+            try {
+                const url = new URL(urlInput);
+                const baseUrl = url.origin + url.pathname;
+                document.getElementById('baseUrl').value = baseUrl;
+                
+                // Clear existing parameters
+                document.getElementById('parametersContainer').innerHTML = '';
+                parameterCount = 0;
+                
+                // Parse filter parameter
+                const filterParam = url.searchParams.get('filter');
+                if (filterParam) {
+                    // Parse filters - basic parsing for "Table/Field eq 'Value'" format
+                    const filterParts = filterParam.split(' and ');
+                    
+                    filterParts.forEach(part => {
+                        const match = part.match(/(.+?)\/(.+?)\s+eq\s+'(.+?)'/);
+                        if (match) {
+                            addParameter();
+                            const id = parameterCount;
+                            
+                            // Decode special characters
+                            const table = decodeSpecialChars(match[1].trim());
+                            const field = decodeSpecialChars(match[2].trim());
+                            const value = match[3].trim();
+                            
+                            document.getElementById(`table-${id}`).value = table;
+                            document.getElementById(`field-${id}`).value = field;
+                            document.getElementById(`value-${id}`).value = value;
+                        }
+                    });
+                }
+                
+                if (parameterCount === 0) {
+                    addParameter();
+                }
+                
+                showValidation('baseUrlValidation', 'success', 'URL parsed successfully!');
+                generateUrl();
+            } catch (e) {
+                showValidation('baseUrlValidation', 'error', 'Invalid URL format: ' + e.message);
+            }
+        }
+        
+        function decodeSpecialChars(str) {
+            // Decode Unicode URL escape codes (_x0020_ for space, etc.)
+            return str.replace(/_x([0-9A-Fa-f]{4})_/g, (match, hex) => {
+                return String.fromCharCode(parseInt(hex, 16));
+            });
+        }
+        
+        function encodeTableColumn(str) {
+            // Encode special characters in table/column names only
+            // Only alphanumeric characters are safe - everything else needs encoding
+            return str.replace(/[^a-zA-Z0-9]/g, (char) => {
+                const code = char.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0');
+                return `_x${code}_`;
+            });
+        }
+        
+        function generateUrl() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            
+            if (!baseUrl) {
+                document.getElementById('generatedUrl').textContent = 'Enter base URL and parameters to generate';
+                document.getElementById('urlValidation').style.display = 'none';
+                return;
+            }
+            
+            // Validate base URL
+            try {
+                new URL(baseUrl);
+            } catch (e) {
+                showValidation('baseUrlValidation', 'error', 'Invalid base URL format');
+                return;
+            }
+            
+            showValidation('baseUrlValidation', 'success', 'Valid base URL ✓');
+            
+            // Collect all parameters
+            const filters = [];
+            const params = document.querySelectorAll('.parameter-item');
+            
+            params.forEach(param => {
+                const id = param.id.split('-')[1];
+                const table = document.getElementById(`table-${id}`).value.trim();
+                const field = document.getElementById(`field-${id}`).value.trim();
+                const value = document.getElementById(`value-${id}`).value.trim();
+                
+                if (table && field && value) {
+                    // Check for INF violation (uppercase INF at start)
+                    if (table.startsWith('INF') || field.startsWith('INF')) {
+                        showValidation('urlValidation', 'error', 'Warning: Table/field names cannot start with uppercase "INF". Use lowercase "inf" instead.');
+                    }
+                    
+                    // Encode special characters in table and field names ONLY
+                    // Values stay as-is (browser handles standard URL encoding)
+                    const encodedTable = encodeTableColumn(table);
+                    const encodedField = encodeTableColumn(field);
+                    
+                    // Value remains unencoded - wrapped in single quotes
+                    // Browser will handle standard URL encoding (%20, etc.)
+                    filters.push(`${encodedTable}/${encodedField} eq '${value}'`);
+                }
+            });
+            
+            if (filters.length === 0) {
+                document.getElementById('generatedUrl').textContent = baseUrl;
+                showValidation('urlValidation', 'success', 'Valid URL (no filters) ✓');
+                return;
+            }
+            
+            // Check 10-expression limit
+            if (filters.length > 10) {
+                showValidation('urlValidation', 'error', 'Error: Power BI Report Server has a 10-expression limit. You have ' + filters.length + ' filters.');
+            }
+            
+            const filterString = filters.join(' and ');
+            const finalUrl = `${baseUrl}?filter=${filterString}`;
+            
+            // Check 2000 character limit
+            const encodedUrl = encodeURI(finalUrl);
+            if (encodedUrl.length > 2000) {
+                showValidation('urlValidation', 'error', `Warning: URL length is ${encodedUrl.length} characters (limit is 2000). Consider reducing parameters.`);
+            } else {
+                showValidation('urlValidation', 'success', `Valid URL ✓ (${encodedUrl.length} characters)`);
+            }
+            
+            document.getElementById('generatedUrl').textContent = finalUrl;
+        }
+        
+        function showValidation(elementId, type, message) {
+            const elem = document.getElementById(elementId);
+            elem.className = `validation-msg ${type}`;
+            elem.textContent = message;
+            elem.style.display = 'block';
+        }
+        
+        function copyToClipboard() {
+            const urlText = document.getElementById('generatedUrl').textContent;
+            
+            if (urlText === 'Enter base URL and parameters to generate') {
+                return;
+            }
+            
+            navigator.clipboard.writeText(urlText).then(() => {
+                const tooltip = document.getElementById('copyTooltip');
+                tooltip.classList.add('show');
+                setTimeout(() => {
+                    tooltip.classList.remove('show');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
